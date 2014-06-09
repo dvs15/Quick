@@ -8,7 +8,7 @@
 
 #import "QuickSpec.h"
 #import "NSString+QCKSelectorName.h"
-#import <Quick/Quick-Swift.h>
+#import "Quick_iOS-Swift.h" // FIXME: Conditional import.
 #import <objc/runtime.h>
 
 const void * const QCKExampleKey = &QCKExampleKey;
