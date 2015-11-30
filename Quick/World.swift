@@ -135,7 +135,7 @@ final internal class World: NSObject {
     }
 
     private lazy var focusedSpecPatterns: Set<String> = {
-        return Set(self.environment["QCK_SPECS"]?.componentsSeparatedByString(",") ?? [])
+        return Set(self.environment["QCK_SPECS"].flatMap(nonEmpty)?.componentsSeparatedByString(",") ?? [])
     }()
 
     private func specNamePatternMatching(name: String)(pattern: String) -> Bool {
@@ -219,4 +219,8 @@ final internal class World: NSObject {
                 userInfo: nil).raise()
         }
     }
+}
+
+private func nonEmpty(string: String) -> String? {
+    return string.isEmpty ? nil : string
 }
