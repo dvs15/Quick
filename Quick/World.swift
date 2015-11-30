@@ -49,6 +49,7 @@ final internal class World: NSObject {
     private var specs: Dictionary<String, ExampleGroup> = [:]
     private var sharedExamples: [String: SharedExampleClosure] = [:]
     private let configuration = Configuration()
+    private let environment: [String: String]
     private var isConfigurationFinalized = false
 
     internal var exampleHooks: ExampleHooks {return configuration.exampleHooks }
@@ -56,7 +57,10 @@ final internal class World: NSObject {
 
     // MARK: Singleton Constructor
 
-    private override init() {}
+    private init(environment: [String: String] = NSProcessInfo.processInfo().environment) {
+        self.environment = environment
+        super.init()
+    }
     private struct Shared {
         static let instance = World()
     }
@@ -113,13 +117,26 @@ final internal class World: NSObject {
         } else {
             let group = ExampleGroup(
                 description: "root example group",
-                flags: [:],
+                flags: filterFlagsForSpecClass(cls),
                 isInternalRootExampleGroup: true
             )
             specs[name] = group
             return group
         }
     }
+
+    private func filterFlagsForSpecClass(cls: AnyClass) -> FilterFlags {
+        let components = NSStringFromClass(cls).componentsSeparatedByString(".")
+        if let name = components.last where focusedSpecNames.contains(name) {
+            return [Filter.focused: true]
+        } else {
+            return [:]
+        }
+    }
+
+    private lazy var focusedSpecNames: Set<String> = {
+        return Set(self.environment["QCK_SPECS"]?.componentsSeparatedByString(",") ?? [])
+    }()
 
     /**
         Returns all examples that should be run for a given spec class.
