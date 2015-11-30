@@ -127,16 +127,24 @@ final internal class World: NSObject {
 
     private func filterFlagsForSpecClass(cls: AnyClass) -> FilterFlags {
         let components = NSStringFromClass(cls).componentsSeparatedByString(".")
-        if let name = components.last where focusedSpecNames.contains(name) {
+        if let name = components.last where focusedSpecPatterns.contains(specNamePatternMatching(name)) {
             return [Filter.focused: true]
         } else {
             return [:]
         }
     }
 
-    private lazy var focusedSpecNames: Set<String> = {
+    private lazy var focusedSpecPatterns: Set<String> = {
         return Set(self.environment["QCK_SPECS"]?.componentsSeparatedByString(",") ?? [])
     }()
+
+    private func specNamePatternMatching(name: String)(pattern: String) -> Bool {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return name == pattern
+        }
+        let entireRange = name.utf16.startIndex..<name.utf16.endIndex
+        return regex.firstMatchInString(name, options: [], range: NSRange(location: 0, length: entireRange.count)) != nil
+    }
 
     /**
         Returns all examples that should be run for a given spec class.
